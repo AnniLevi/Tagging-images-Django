@@ -1,5 +1,5 @@
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -26,4 +26,10 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data["password"] = make_password(validated_data["password"])
-        return User.objects.create(**validated_data)
+        user = User.objects.create(**validated_data)
+        try:
+            user_group = Group.objects.get(name="User")
+            user.groups.add(user_group)
+        except Group.DoesNotExist:
+            print("group 'User' does not exist")
+        return user
