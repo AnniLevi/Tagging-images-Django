@@ -1,3 +1,7 @@
+import io
+import zipfile
+
+from django.core.files.images import ImageFile
 from rest_framework import serializers
 
 from .models import Image
@@ -17,3 +21,38 @@ class ImageSerializer(serializers.ModelSerializer):
         user_id = self.context["request"].user.id
         validated_data["user_id"] = user_id
         return super().create(validated_data)
+
+
+class ZipImageSerializer(serializers.Serializer):
+    class Meta:
+        fields = ("zip_archive",)
+
+    zip_archive = serializers.FileField()
+
+    def validate_zip_archive(self, obj):
+        if not zipfile.is_zipfile(obj):
+            raise serializers.ValidationError("zip archive is required")
+        zp = zipfile.ZipFile(obj)
+        size = sum([item.file_size for item in zp.filelist])
+        if size / 1024 / 1024 > 50:
+            raise serializers.ValidationError(
+                "zip archive should have a maximum size of 50MB"
+            )
+        return obj
+
+    def create(self, validated_data):
+        zp = zipfile.ZipFile(validated_data["zip_archive"])
+        objs = []
+        for filename in zp.namelist():
+            objs.append(
+                Image(
+                    name=filename,
+                    img=ImageFile(
+                        io.BytesIO(zp.read(filename)),
+                        name=Image.create_image_name(filename),
+                    ),
+                    user_id=self.context["user"].id,
+                )
+            )
+        Image.objects.bulk_create(objs)
+        return validated_data

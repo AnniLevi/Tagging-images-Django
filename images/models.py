@@ -1,3 +1,6 @@
+import os
+import uuid
+
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -14,3 +17,16 @@ class Image(models.Model):
 
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def create_image_name(image_name):
+        img_extension = os.path.splitext(image_name)[1]
+        return "{}{}".format(uuid.uuid4().hex[:30], img_extension)
+
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        self.img.name = self.create_image_name(self.img.name)
+        return super().save(
+            force_insert=False, force_update=False, using=None, update_fields=None
+        )

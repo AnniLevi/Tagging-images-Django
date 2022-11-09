@@ -5,4 +5,4 @@ from images.models import Image
 
 @admin.register(Image)
 class ImageAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("id", "name", "user")
