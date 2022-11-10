@@ -12,4 +12,4 @@ def validate_image_size(obj):
 def validate_image_format(obj):
     im = Image.open(obj.file)
     if im.format not in ("PNG", "JPEG"):
-        raise ValidationError("Supported formats: png or jpeg")
+        raise ValidationError("Supported formats: png, jpg or jpeg")

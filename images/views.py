@@ -5,8 +5,8 @@ from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Image
-from .serializers import ImageSerializer, ZipImageSerializer
+from .models import Image, Tag
+from .serializers import ImageSerializer, TagSerializer, ZipImageSerializer
 
 
 class ImageView(ListCreateAPIView):
@@ -46,3 +46,10 @@ class ZipImageView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"ok": True}, status=status.HTTP_201_CREATED)
+
+
+class TagView(ListCreateAPIView):
+    serializer_class = TagSerializer
+
+    def get_queryset(self):
+        return Tag.objects.filter(user=self.request.user).order_by("-created_at")

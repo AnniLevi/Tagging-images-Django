@@ -1,21 +1,31 @@
 import io
+import os
 import zipfile
 
 from django.core.files.images import ImageFile
 from rest_framework import serializers
 
-from .models import Image
+from .models import Image, Tag
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ("id", "tag", "img_id", "user_id", "created_at")
+
+    img_id = serializers.IntegerField()
+
+    def create(self, validated_data):
+        print(validated_data)
+        user_id = self.context["request"].user.id
+        validated_data["user_id"] = user_id
+        return super().create(validated_data)
 
 
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        fields = ("id", "name", "img", "created_at", "user_id")
-
-    user_id = serializers.SerializerMethodField()
-
-    def get_user_id(self, obj):
-        return obj.user.id
+        fields = ("id", "name", "img", "user_id", "created_at")
 
     def create(self, validated_data):
         user_id = self.context["request"].user.id
@@ -38,6 +48,10 @@ class ZipImageSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 "zip archive should have a maximum size of 50MB"
             )
+        for filename in zp.namelist():
+            extension = os.path.splitext(filename)[1]
+            if extension not in (".jpg", ".jpeg", ".png"):
+                raise serializers.ValidationError("Supported formats: png, jpg or jpeg")
         return obj
 
     def create(self, validated_data):

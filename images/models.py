@@ -30,3 +30,10 @@ class Image(models.Model):
         return super().save(
             force_insert=False, force_update=False, using=None, update_fields=None
         )
+
+
+class Tag(models.Model):
+    tag = models.CharField(max_length=100)
+    img = models.ForeignKey(Image, on_delete=models.CASCADE, related_name="tags")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tags")
+    created_at = models.DateTimeField(auto_now_add=True)
