@@ -81,3 +81,12 @@ class ImageCommonTagsSerializer(serializers.Serializer):
     img_name = serializers.CharField(source="name")
     tag = serializers.CharField(source="tags__tag")
     tags_count = serializers.IntegerField()
+
+
+class ImageFreqTaggedSerializer(serializers.Serializer):
+    class Meta:
+        fields = ("id", "img_name", "tags_count")
+
+    id = serializers.IntegerField()
+    img_name = serializers.CharField(source="name")
+    tags_count = serializers.IntegerField()

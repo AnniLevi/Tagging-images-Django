@@ -12,6 +12,7 @@ from account.permissions import check_user_group
 from .models import Image, Tag
 from .serializers import (
     ImageCommonTagsSerializer,
+    ImageFreqTaggedSerializer,
     ImageSerializer,
     TagSerializer,
     ZipImageSerializer,
@@ -109,6 +110,24 @@ class ImageCommonTagsView(ListAPIView):
         return qs
 
     def get(self, request, *args, **kwargs):
-        if not check_user_group(self.request.user, [1, 2]):
+        if not check_user_group(self.request.user, [2]):
+            raise PermissionDenied
+        return self.list(request, *args, **kwargs)
+
+
+class ImageFreqTaggedView(ListAPIView):
+    serializer_class = ImageFreqTaggedSerializer
+
+    def get_queryset(self):
+        qs = (
+            Image.objects.prefetch_related("tags")
+            .values("id", "name")
+            .annotate(tags_count=Count("tags"))
+            .order_by("-tags_count")
+        )
+        return qs
+
+    def get(self, request, *args, **kwargs):
+        if not check_user_group(self.request.user, [2]):
             raise PermissionDenied
         return self.list(request, *args, **kwargs)
