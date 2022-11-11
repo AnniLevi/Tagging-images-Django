@@ -41,6 +41,13 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "drf_yasg",
+    "health_check",
+    "health_check.db",
+    "health_check.cache",
+    "health_check.storage",
+    "health_check.contrib.migrations",
+    "health_check.contrib.psutil",
+    # 'health_check.contrib.redis',
     # local apps
     "account",
     "images",
@@ -152,4 +159,9 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": False,
     "ROTATE_REFRESH_TOKENS": True,
     "UPDATE_LAST_LOGIN": True,
+}
+
+HEALTH_CHECK = {
+    "DISK_USAGE_MAX": 90,  # percent
+    "MEMORY_MIN": 100,  # in MB
 }
