@@ -16,7 +16,6 @@ class TagSerializer(serializers.ModelSerializer):
     img_id = serializers.IntegerField()
 
     def create(self, validated_data):
-        print(validated_data)
         user_id = self.context["request"].user.id
         validated_data["user_id"] = user_id
         return super().create(validated_data)
@@ -25,7 +24,9 @@ class TagSerializer(serializers.ModelSerializer):
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        fields = ("id", "name", "img", "user_id", "created_at")
+        fields = ("id", "name", "img", "user_id", "created_at", "tags")
+
+    tags = TagSerializer(many=True, read_only=True)
 
     def create(self, validated_data):
         user_id = self.context["request"].user.id

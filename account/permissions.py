@@ -1,15 +1,25 @@
+from enum import Enum
+
 from django.contrib.auth.models import Group
 
 
+class UserGroups(Enum):
+    user = 0
+    verified_user = 1
+    admin = 2
+
+
 def create_groups():
-    user_group = Group.objects.get_or_create(name="User")[0]
-    verified_user_group = Group.objects.get_or_create(name="Verified User")[0]
-    admin_group = Group.objects.get_or_create(name="Admin")[0]
+    groups = [Group(name=g.name) for g in UserGroups]
+    Group.objects.bulk_create(groups)
 
 
-# user_group.permissions.set([permission_list])
-# user_group.permissions.add(permission, permission, ...)
-# user_group.permissions.remove(permission, permission, ...)
-# user_group.permissions.clear()
+def check_user_group(user, levels_list):
+    """Checks whether user is in the given group, otherwise the
+    PermissionDenied exception is raised."""
 
-# user.groups.add(user_group)
+    if not user.groups.filter(
+        name__in=[UserGroups(l).name for l in levels_list]
+    ).exists():
+        return False
+    return True
