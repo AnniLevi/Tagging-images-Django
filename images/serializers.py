@@ -71,3 +71,13 @@ class ZipImageSerializer(serializers.Serializer):
             )
         Image.objects.bulk_create(objs)
         return validated_data
+
+
+class ImageCommonTagsSerializer(serializers.Serializer):
+    class Meta:
+        fields = ("id", "img_name", "tag", "tags_count")
+
+    id = serializers.IntegerField()
+    img_name = serializers.CharField(source="name")
+    tag = serializers.CharField(source="tags__tag")
+    tags_count = serializers.IntegerField()

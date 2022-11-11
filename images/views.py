@@ -1,16 +1,21 @@
 from django.core.exceptions import PermissionDenied
-from django.db.models import Prefetch
+from django.db.models import Count, Prefetch
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.permissions import check_user_group
 
 from .models import Image, Tag
-from .serializers import ImageSerializer, TagSerializer, ZipImageSerializer
+from .serializers import (
+    ImageCommonTagsSerializer,
+    ImageSerializer,
+    TagSerializer,
+    ZipImageSerializer,
+)
 
 
 class ImageView(ListCreateAPIView):
@@ -89,3 +94,21 @@ class TagView(ListCreateAPIView):
 
     def get_queryset(self):
         return Tag.objects.filter(user=self.request.user).order_by("-created_at")
+
+
+class ImageCommonTagsView(ListAPIView):
+    serializer_class = ImageCommonTagsSerializer
+
+    def get_queryset(self):
+        qs = (
+            Image.objects.prefetch_related("tags")
+            .values("id", "name", "tags__tag")
+            .annotate(tags_count=Count("tags"))
+            .order_by("-tags_count")
+        )
+        return qs
+
+    def get(self, request, *args, **kwargs):
+        if not check_user_group(self.request.user, [1, 2]):
+            raise PermissionDenied
+        return self.list(request, *args, **kwargs)

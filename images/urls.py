@@ -6,4 +6,5 @@ urlpatterns = [
     path("", views.ImageView.as_view()),
     path("zip-upload/", views.ZipImageView.as_view()),
     path("tags/", views.TagView.as_view()),
+    path("common-tags/", views.ImageCommonTagsView.as_view()),
 ]
