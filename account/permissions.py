@@ -15,8 +15,7 @@ def create_groups():
 
 
 def check_user_group(user, levels_list):
-    """Checks whether user is in the given group, otherwise the
-    PermissionDenied exception is raised."""
+    """Checks whether user is in the given group."""
 
     if not user.groups.filter(
         name__in=[UserGroups(l).name for l in levels_list]
