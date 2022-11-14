@@ -1,5 +1,7 @@
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Prefetch
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -48,6 +50,7 @@ class ImageView(ListCreateAPIView):
             ),
         ],
     )
+    @method_decorator(cache_page(60 * 2))
     def get(self, request, *args, **kwargs):
         return super().get(self, request, *args, **kwargs)
 
@@ -109,6 +112,7 @@ class ImageCommonTagsView(ListAPIView):
         )
         return qs
 
+    @method_decorator(cache_page(60 * 2))
     def get(self, request, *args, **kwargs):
         if not check_user_group(self.request.user, [2]):
             raise PermissionDenied
@@ -127,6 +131,7 @@ class ImageFreqTaggedView(ListAPIView):
         )
         return qs
 
+    @method_decorator(cache_page(60 * 2))
     def get(self, request, *args, **kwargs):
         if not check_user_group(self.request.user, [2]):
             raise PermissionDenied
