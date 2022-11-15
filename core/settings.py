@@ -94,6 +94,30 @@ DATABASES = {
     }
 }
 
+# Postgres
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.environ.get("DATABASE_NAME"),
+#         "USER": os.environ.get("DATABASE_USER"),
+#         "PASSWORD": os.environ.get("DATABASE_PASSWORD"),
+#         "HOST": os.environ.get("DATABASE_HOST"),
+#         "PORT": os.environ.get("DATABASE_PORT"),
+#         "CONN_MAX_AGE": 100,
+#     }
+# }
+
+REDIS_URL = "redis://{host}:{port}".format(
+    host=os.environ.get("REDIS_HOST", "redis"),
+    port=os.environ.get("REDIS_PORT", 6379),
+)
+
+REDIS_CACHE_SETTINGS = {
+    "BACKEND": "django_redis.cache.RedisCache",
+    "OPTIONS": {
+        "CLIENT_CLASS": "django_redis.client.DefaultClient",
+    },
+}
 
 CACHES = {
     "default": {
@@ -101,6 +125,11 @@ CACHES = {
         "LOCATION": "redis://127.0.0.1:6379",
     }
 }
+
+# redis cache
+# CACHES = {
+#     "default": dict(LOCATION=REDIS_URL + "/0", **REDIS_CACHE_SETTINGS),
+# }
 
 
 # Password validation
