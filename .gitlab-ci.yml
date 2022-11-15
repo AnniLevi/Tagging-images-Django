@@ -1,0 +1,17 @@
+stages:
+  - tests
+
+run tests:
+  stage: tests
+  image: python:3
+  before_script:
+    - pip install -r requirements.txt
+    - python manage.py migrate
+    - python manage.py creategroups
+  script:
+    - python3 manage.py test
+  artifacts:
+    when: always
+    expire_in: 1 month
+    reports:
+      junit: report.xml
