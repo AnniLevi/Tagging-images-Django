@@ -18,11 +18,6 @@ class Image(models.Model):
     def __str__(self):
         return self.name
 
-    @staticmethod
-    def create_image_name(image_name):
-        img_extension = os.path.splitext(image_name)[1]
-        return "{}{}".format(uuid.uuid4().hex[:30], img_extension)
-
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
@@ -30,6 +25,12 @@ class Image(models.Model):
         return super().save(
             force_insert=False, force_update=False, using=None, update_fields=None
         )
+
+    @staticmethod
+    def create_image_name(image_name: str) -> str:
+        """Creates a random image name, keeping the extension."""
+        img_extension: str = os.path.splitext(image_name)[1]
+        return "{}{}".format(uuid.uuid4().hex[:30], img_extension)
 
 
 class Tag(models.Model):

@@ -202,3 +202,7 @@ HEALTH_CHECK = {
     "DISK_USAGE_MAX": 90,  # percent
     "MEMORY_MIN": 300,  # in MB
 }
+
+IMAGE_FORMATS = ["PNG", "JPEG"]
+IMAGE_MAX_SIZE_MB = int(os.environ.get("IMAGE_MAX_SIZE_BYTE", 5))
+ZIP_MAX_SIZE_MB = int(os.environ.get("ZIP_MAX_SIZE_MB", 50))

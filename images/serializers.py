@@ -1,9 +1,15 @@
 import io
-import os
+import typing
 import zipfile
 
 from django.core.files.images import ImageFile
 from rest_framework import serializers
+
+from utils.validators import (
+    validate_image_format,
+    validate_image_size,
+    validate_zip_archive_size,
+)
 
 from .models import Image, Tag
 
@@ -15,8 +21,8 @@ class TagSerializer(serializers.ModelSerializer):
 
     img_id = serializers.IntegerField()
 
-    def create(self, validated_data):
-        user_id = self.context["request"].user.id
+    def create(self, validated_data: dict) -> Tag:
+        user_id: int = self.context["request"].user.id
         validated_data["user_id"] = user_id
         return super().create(validated_data)
 
@@ -28,9 +34,8 @@ class ImageSerializer(serializers.ModelSerializer):
 
     tags = TagSerializer(many=True, read_only=True)
 
-    def create(self, validated_data):
-        user_id = self.context["request"].user.id
-        validated_data["user_id"] = user_id
+    def create(self, validated_data: dict) -> Image:
+        validated_data["user_id"] = self.context["request"].user.id
         return super().create(validated_data)
 
 
@@ -40,24 +45,21 @@ class ZipImageSerializer(serializers.Serializer):
 
     zip_archive = serializers.FileField()
 
-    def validate_zip_archive(self, obj):
+    def validate_zip_archive(self, obj: typing.IO[bytes]) -> typing.IO[bytes]:
         if not zipfile.is_zipfile(obj):
             raise serializers.ValidationError("zip archive is required")
-        zp = zipfile.ZipFile(obj)
-        size = sum([item.file_size for item in zp.filelist])
-        if size / 1024 / 1024 > 50:
-            raise serializers.ValidationError(
-                "zip archive should have a maximum size of 50MB"
-            )
+        zp: zipfile.ZipFile = zipfile.ZipFile(obj)
+        validate_zip_archive_size(zp)
         for filename in zp.namelist():
-            extension = os.path.splitext(filename)[1]
-            if extension not in (".jpg", ".jpeg", ".png"):
-                raise serializers.ValidationError("Supported formats: png, jpg or jpeg")
+            file: bytes = zp.read(filename)
+            img: ImageFile = ImageFile(io.BytesIO(file))
+            validate_image_size(img)
+            validate_image_format(img)
         return obj
 
-    def create(self, validated_data):
-        zp = zipfile.ZipFile(validated_data["zip_archive"])
-        objs = []
+    def create(self, validated_data: dict) -> dict:
+        zp: zipfile.ZipFile = zipfile.ZipFile(validated_data["zip_archive"])
+        objs: typing.List[Image] = []
         for filename in zp.namelist():
             objs.append(
                 Image(
