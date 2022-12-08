@@ -1,0 +1,33 @@
+version: "3.5"
+services:
+  postgres:
+    image: postgres:12
+    restart: always
+    networks:
+      - internal
+    env_file:
+      - envs/.postgres.env
+  pgbouncer:
+    image: pgbouncer/pgbouncer
+    env_file:
+      - envs/.pgbouncer.env
+    depends_on:
+      - postgres
+    networks:
+      - internal
+  redis:
+    image: "redis:alpine"
+    networks:
+      - internal
+  django:
+    restart: always
+    depends_on:
+      - postgres
+      - pgbouncer
+    env_file:
+      - envs/.django.env
+    networks:
+      - internal
+networks:
+  internal:
+    external: false

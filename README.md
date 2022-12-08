@@ -1,55 +1,225 @@
 # First Django Project
 
-### A project for storing a collection of images and allowing the user to tag them.
+### A project for storing a collection of images and allowing users to tag them
 
-swagger
-docker
-python manage.py creategroups
-
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
 
 ## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+Back-end (REST API) developed using Python 3, Django REST Framework.
+Application implements authorization (JWT token), splitting of users into groups of privileges.
+Users, according to the privilege level, can add collections of images, as well as tag them.
+Users with the highest level of privileges can receive statistical information about the frequency of image tagging
+and the most common tags.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+- GET type endpoints are cached and results are provided using pagination
+- All endpoints are covered with tests
+- Project contains swagger documentation and endpoint for health checking
+- Project is placed in a docker container managed by a docker compose file, in order to easy set up the application in production
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## Prerequisites
+- Docker
+- GitLab Runner
 
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Start the docker containers
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+> docker-compose up -d --build
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+User privilege groups must be created.
+Each newly registered user will have the lowest privilege level
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+> python manage.py creategroups
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+Swagger documentation:
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+> /swagger/
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+Admin interface:
 
-## License
-For open source projects, say how it is licensed.
+> /admin/
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+
+## Endpoints
+
+### auth
+- POST api/auth/register/
+```
+request:
+{
+    "username",
+    "first_name",
+    "last_name",
+    "email",
+    "password"
+}
+
+response (code 201):
+{
+    "username",
+    "first_name",
+    "last_name",
+    "email",
+    "password",
+    "token"
+}
+```
+
+- POST api/auth/token/
+```
+request:
+{
+    "username",
+    "password"
+}
+
+response (code 200):
+{
+    "refresh",
+    "access"
+}
+```
+
+- POST api/auth/token/refresh/
+```
+request:
+{
+    "refresh"
+}
+
+response (code 200):
+{
+    "refresh",
+    "access"
+}
+```
+
+- POST api/auth/token/verify/
+```
+request:
+{
+    "token"
+}
+
+response (code 200):
+{
+    "token"
+}
+```
+
+
+### images
+
+- GET api/images/
+```
+query params: tagged=true/false
+
+response (code 200):
+[
+    {
+        "id",
+        "name",
+        "img",
+        "user_id",
+        "created_at",
+        "tags":
+        [
+            {
+                "id",
+                "tag",
+                "img_id",
+                "user_id",
+                "created_at"
+            },
+        ]
+    },
+]
+```
+
+- POST api/images/
+```
+request:
+{
+    "name",
+    "img"
+}
+
+response (code 201):
+{
+    "id",
+    "name",
+    "img",
+    "user_id",
+    "created_at",
+    "tags"
+}
+```
+
+- POST api/images/zip-upload/
+```
+request:
+{
+    "zip_archive"
+}
+
+response (code 201):
+{
+    "ok": true
+}
+```
+
+- GET api/images/tags/
+```
+response (code 200):
+[
+    {
+        "id",
+        "tag",
+        "img_id",
+        "user_id",
+        "created_at"
+    },
+]
+```
+
+- POST api/images/tags/
+```
+request:
+{
+    "tag",
+    "img_id"
+}
+
+response (code 201):
+{
+    "id",
+    "tag",
+    "img_id",
+    "user_id",
+    "created_at"
+}
+```
+
+- GET api/images/common-tags/
+```
+response (code 200):
+[
+    {
+        "id",
+        "img_name",
+        "tag",
+        "tags_count"
+    },
+]
+```
+
+- GET api/images/most-tagged/
+```
+response (code 200):
+[
+    {
+        "id",
+        "tags_count"
+        "img_name",
+    },
+]
+```

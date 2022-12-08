@@ -8,6 +8,7 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
+import os
 from datetime import timedelta
 from pathlib import Path
 
@@ -40,8 +41,16 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "drf_yasg",
+    "health_check",
+    "health_check.db",
+    "health_check.cache",
+    "health_check.storage",
+    "health_check.contrib.migrations",
+    "health_check.contrib.psutil",
+    # 'health_check.contrib.redis',
     # local apps
     "account",
+    "images",
 ]
 
 MIDDLEWARE = [
@@ -84,6 +93,43 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+# Postgres
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.environ.get("DATABASE_NAME"),
+#         "USER": os.environ.get("DATABASE_USER"),
+#         "PASSWORD": os.environ.get("DATABASE_PASSWORD"),
+#         "HOST": os.environ.get("DATABASE_HOST"),
+#         "PORT": os.environ.get("DATABASE_PORT"),
+#         "CONN_MAX_AGE": 100,
+#     }
+# }
+
+REDIS_URL = "redis://{host}:{port}".format(
+    host=os.environ.get("REDIS_HOST", "redis"),
+    port=os.environ.get("REDIS_PORT", 6379),
+)
+
+REDIS_CACHE_SETTINGS = {
+    "BACKEND": "django_redis.cache.RedisCache",
+    "OPTIONS": {
+        "CLIENT_CLASS": "django_redis.client.DefaultClient",
+    },
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379",
+    }
+}
+
+# redis cache
+# CACHES = {
+#     "default": dict(LOCATION=REDIS_URL + "/0", **REDIS_CACHE_SETTINGS),
+# }
 
 
 # Password validation
@@ -128,12 +174,18 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+
 # DRF
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 50,
 }
 
 SIMPLE_JWT = {
@@ -145,3 +197,12 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "UPDATE_LAST_LOGIN": True,
 }
+
+HEALTH_CHECK = {
+    "DISK_USAGE_MAX": 90,  # percent
+    "MEMORY_MIN": 300,  # in MB
+}
+
+IMAGE_FORMATS = ["PNG", "JPEG"]
+IMAGE_MAX_SIZE_MB = int(os.environ.get("IMAGE_MAX_SIZE_BYTE", 5))
+ZIP_MAX_SIZE_MB = int(os.environ.get("ZIP_MAX_SIZE_MB", 50))

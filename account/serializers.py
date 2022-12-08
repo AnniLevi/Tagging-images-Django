@@ -4,6 +4,8 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from account.permissions import UserGroups
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,8 +30,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data["password"] = make_password(validated_data["password"])
         user = User.objects.create(**validated_data)
         try:
-            user_group = Group.objects.get(name="User")
-            user.groups.add(user_group)
+            start_group = Group.objects.get(name=UserGroups(0).name)
+            user.groups.add(start_group)
         except Group.DoesNotExist:
             print("group 'User' does not exist")
         return user

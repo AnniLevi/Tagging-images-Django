@@ -19,6 +19,7 @@ schema_view = get_schema_view(
 
 api_urls = [
     path("auth/", include("account.urls")),
+    path("images/", include("images.urls")),
 ]
 
 urlpatterns = [
@@ -35,6 +36,7 @@ urlpatterns = [
     re_path(
         r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"
     ),
+    path("health-check/", include("health_check.urls")),
     path("admin/", admin.site.urls),
     path("api/", include(api_urls)),
 ]
