@@ -1,4 +1,4 @@
-# First Django Project
+# Tagging Images Django Project
 
 ### A project for storing a collection of images and allowing users to tag them
 
